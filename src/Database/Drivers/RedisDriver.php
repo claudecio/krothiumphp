@@ -46,32 +46,32 @@ class RedisDriver {
     public function set(string $key, mixed $value, ?int $ttl = null): bool {
         // Predis: set or setex
         if ($ttl !== null && $ttl > 0) {
-            $resp = $this->connection->setex(key: $key, seconds: $ttl, value: $value);
+            $resp = $this->connection->setex($key, $ttl, $value);
             return (bool) $resp;
         }
-        $resp = $this->connection->set(key: $key, value: $value);
+        $resp = $this->connection->set($key, $value);
         return (bool) $resp;
     }
 
     /** Recupera um valor por chave */
     public function get(string $key): mixed {
-        return $this->connection->get(key: $key);
+        return $this->connection->get($key);
     }
 
     /** Remove chaves, retorna número de chaves removidas */
     public function del(string ...$keys): int {
         if (empty($keys)) return 0;
-        return (int) $this->connection->del(keyOrKeys: $keys);
+        return (int) $this->connection->del(...$keys);
     }
 
     /** Verifica se uma chave existe */
     public function exists(string $key): bool {
-        return (bool) $this->connection->exists(key: $key);
+        return (bool) $this->connection->exists($key);
     }
 
     /** Define TTL (segundos) para uma chave */
     public function expire(string $key, int $seconds): bool {
-        return (bool) $this->connection->expire(key: $key, seconds: $seconds);
+        return (bool) $this->connection->expire($key, $seconds);
     }
 
     /** Proxy para comandos não-explicitados */
