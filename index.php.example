@@ -1,0 +1,50 @@
+<?php
+// Importa autoload do Composer
+require_once realpath(path: __DIR__ . '/../vendor/autoload.php');
+
+use Dotenv\Dotenv;
+use KrothiumPHP\KrothiumPHP;
+
+// Carrega variáveis de ambiente
+$dotenv = Dotenv::createImmutable(paths: realpath(path: __DIR__ . '/../'));
+$dotenv->load();
+
+// ======================================
+// Inicializa KrothiumPHP com configs
+// ======================================
+KrothiumPHP::init(config: [
+    'errors' => [
+        'display_errors' => 1,
+        'display_startup_errors' => 1,
+        'log_errors' => 1,
+        'error_log' => realpath(path: __DIR__ . '/../storage/Logs/php-error.log'),
+        'error_reporting' => E_ALL
+    ],
+    'constants' => [
+        'ROUTER_MODE' => 'JSON', // JSON
+        'APP_SYS_MODE' => 'DEV', // DEV | PROD
+        'ROOT_SYSTEM_PATH' => realpath(path: __DIR__ . "/.."),
+        'INI_SYSTEM_PATH' => realpath(path: __DIR__ . "/../app"),
+        'MODULE_PATH' => realpath(path: __DIR__ . "/../app/Module"),
+        'STORAGE_FOLDER_PATH' => realpath(path: __DIR__ . "/../storage"),
+        'COMPONENT_PATH' => realpath(path: __DIR__ . "/../app/Common/Component"),
+        'ROUTER_ALLOWED_ORIGINS' => [
+            '*'
+        ]
+    ],
+    'system' => [
+        'enable_session' => true,
+        'default_timezone' => 'America/Fortaleza',
+    ],
+    'logger' => [
+        'driver' => 'FILE',
+        'logDir' => realpath(path: __DIR__ . '/../storage/Logs')
+    ]
+]);
+
+// Importa rotas da API v0
+
+// ============================
+// Dispara o roteador
+// ============================
+KrothiumPHP::routerDispatch();
