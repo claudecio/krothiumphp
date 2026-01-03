@@ -1,7 +1,9 @@
 <?php
 namespace KrothiumPHP;
 
+use Exception;
 use KrothiumPHP\Http\Router;
+use KrothiumPHP\View\Render;
 use KrothiumPHP\Services\LoggerService;
 
 class KrothiumPHP {
@@ -50,6 +52,24 @@ class KrothiumPHP {
             ini_set(option: 'log_errors', value: $errors['log_errors']);
             ini_set(option: 'error_log', value: $errors['error_log']);
             error_reporting(error_level: $errors['error_reporting']);
+        }
+    }
+
+    /**
+     * Configura views
+     */
+    private static function setupViews(): void {
+        if(defined(constant_name: 'ROUTER_MODE') && ROUTER_MODE === 'VIEW') {
+            if(!defined(constant_name: 'VIEW_PATH')) {
+                throw new Exception(message: "Constant 'VIEW_PATH' is not defined.");
+            }
+            if(!defined(constant_name: 'MODULE_PATH')) {
+                throw new Exception(message: "Constant 'MODULE_PATH' is not defined.");
+            }
+            Render::configure(
+                viewPath: VIEW_PATH,
+                modulePath: MODULE_PATH
+            );
         }
     }
 
