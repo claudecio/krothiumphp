@@ -34,6 +34,7 @@ class KrothiumPHP {
         self::setupSession();
         // Inicia o router
         Router::init();
+        self::setupViews();
         
         self::setupErrors();
         self::setupTimezone();
