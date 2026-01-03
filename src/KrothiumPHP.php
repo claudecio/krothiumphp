@@ -31,11 +31,11 @@ class KrothiumPHP {
     public static function init(array $config = []) {
         self::$config = $config;
         self::setupConstants();
+        self::setupSession();
         // Inicia o router
         Router::init();
         
         self::setupErrors();
-        self::setupSession();
         self::setupTimezone();
         self::setupLogger();
         self::setupErrorHandlers();
