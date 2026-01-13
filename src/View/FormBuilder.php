@@ -131,4 +131,82 @@ class FormBuilder {
         }
         return "<span class=\"badge bg-{$color}\"{$attrHtml}{$styleHtml}>{$label}</span>";
     }
+
+    /**
+     * Gera a estrutura HTML para uma paginação.
+     *
+     * Esta função cria os links de navegação para as páginas de resultados, considerando o número total de registros,
+     * o limite de registros por página, a página atual e opções de personalização.
+     *
+     * @param mixed $pagina_atual A página atual.
+     * @param int $limite O número máximo de registros por página.
+     * @param mixed $total_registros O número total de registros.
+     * @param int $max_links O número máximo de links de página a serem exibidos (opcional, padrão: 10).
+     * @param string $container_class A classe CSS para o container da paginação (opcional, padrão: 'pagination justify-content-center').
+     * @return string O HTML da paginação.
+     */
+    public static function generatePagination(mixed $pagina_atual, mixed $total_registros, int $limite = 10): string {
+        is_null(value: $pagina_atual) ? '1' : $pagina_atual;
+        is_null(value: $total_registros) ? '0' : $total_registros;
+        // Calcula o total de páginas
+        $total_paginas = ceil(num: $total_registros / $limite);
+        // Construir a query string com os parâmetros atuais, exceto 'page'
+        $query_params = $_GET;
+        unset($query_params['page']); // Remove 'page' para evitar duplicação
+        unset($query_params['url']); // Remove 'url' para evitar duplicação
+        $query_string = http_build_query(data: $query_params);
+        // Limitar a quantidade máxima de botões a serem exibidos
+        $max_botoes = 10;
+        $inicio = max(1, $pagina_atual - intval($max_botoes / 2));
+        $fim = min($total_paginas, $inicio + $max_botoes - 1);
+        // Ajustar a janela de exibição se atingir o limite inferior ou superior
+        if ($fim - $inicio + 1 < $max_botoes) {
+            $inicio = max(1, $fim - $max_botoes + 1);
+        }
+        // Validação das paginações
+        if($total_registros > $limite){
+            // Inicia a criação do HTML da paginação
+            $html = '<nav aria-label="Page navigation">';
+            $html .= '<ul class="pagination justify-content-center">';
+            // Botão Anterior (desabilitado na primeira página)
+            if ($pagina_atual > 1) {
+                $anterior = $pagina_atual - 1;
+                $html .= '<li class="page-item">';
+                $html .= '<a class="page-link" href="?' . $query_string . '&page=' . $anterior . '"><span aria-hidden="true">&laquo;</span></a>';
+                $html .= '</li>';
+            } else {
+                $html .= '<li class="page-item disabled">';
+                $html .= '<a class="page-link"><span aria-hidden="true">&laquo;</span></a>';
+                $html .= '</li>';
+            }
+            // Geração dos links de cada página dentro da janela definida
+            for ($i = $inicio; $i <= $fim; $i++) {
+                if ($i == $pagina_atual) {
+                    $html .= '<li class="page-item active">';
+                    $html .= '<a class="page-link" href="?' . $query_string . '&page=' . $i . '">' . $i . '</a>';
+                    $html .= '</li>';
+                } else {
+                    $html .= '<li class="page-item">';
+                    $html .= '<a class="page-link" href="?' . $query_string . '&page=' . $i . '">' . $i . '</a>';
+                    $html .= '</li>';
+                }
+            }
+            // Botão Próximo (desabilitado na última página)
+            if ($pagina_atual < $total_paginas) {
+                $proxima = $pagina_atual + 1;
+                $html .= '<li class="page-item">';
+                $html .= '<a class="page-link" href="?' . $query_string . '&page=' . $proxima . '"><span aria-hidden="true">&raquo;</span></a>';
+                $html .= '</li>';
+            } else {
+                $html .= '<li class="page-item disabled">';
+                $html .= '<a class="page-link"><span aria-hidden="true">&raquo;</span></a>';
+                $html .= '</li>';
+            }
+            $html .= '</ul>';
+            $html .= '</nav>';
+        } else {
+            $html = "";
+        }
+        return $html;
+    }
 }
