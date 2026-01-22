@@ -209,4 +209,34 @@ class FormBuilder {
         }
         return $html;
     }
+
+    /**
+     * Converte um array de registros em opções para <select>.
+     *
+     * @param array $items Array de dados (ex: resultado do banco).
+     * @param string $valueKey Chave que será usada como value do option.
+     * @param string|callable $label Chave do label OU uma função para gerar o label.
+     * @return array Array no formato [value => label].
+     */
+    public static function buildSelectOptions(array $items, string $valueKey, string|callable $label): array {
+        if (empty($items)) {
+            return [];
+        }
+        // Caso o label seja uma função (closure)
+        if (is_callable(value: $label)) {
+            return array_column(
+                array: array_map(
+                    callback: fn ($item) => [
+                        'value' => $item[$valueKey],
+                        'label' => $label($item),
+                    ],
+                    array: $items
+                ),
+                column_key: 'label',
+                index_key: 'value'
+            );
+        }
+        // Caso simples: chave direta
+        return array_column(array: $items, column_key: $label, index_key: $valueKey);
+    }
 }
