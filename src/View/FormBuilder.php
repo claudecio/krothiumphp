@@ -28,6 +28,9 @@ class FormBuilder {
         $invalidClass = $error ? ' is-invalid' : '';
         // required
         $isRequired = isset($attrs['required']) && $attrs['required'];
+        if (!isset($attrs['required-indicator']) && $attrs['required-indicator'] == false) {
+            $isRequired = false;
+        }
         if ($isRequired) {
             $label .= ' <sup class="text-danger">*</sup>';
         }
