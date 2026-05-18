@@ -242,4 +242,28 @@ class FormBuilder {
         // Caso simples: chave direta
         return array_column(array: $items, column_key: $label, index_key: $valueKey);
     }
+
+    /**
+     * Recupera o prefixo da rota base (Base Path) configurado para a aplicação.
+     *
+     * Este método estático é utilizado pelo motor de roteamento (Router) para identificar 
+     * a subpasta ou o prefixo de URL sob o qual a aplicação está rodando. Ele desempenha 
+     * um papel fundamental na construção de caminhos absolutos e no casamento de rotas 
+     * (Route Matching), especialmente quando o sistema está implantado em subdiretórios 
+     * de um servidor web (ex: `http://localhost/meu-sistema/` em vez de `http://localhost/`).
+     *
+     * ---
+     * ## Mecanismo de Resolução
+     * 1. **Contexto de Sessão:** Verifica se existe um prefixo previamente calculado e armazenado na chave `ROUTER_BASE_PATH` da superglobal `$_SESSION`.
+     * 2. **Fallback Seguro:** Caso a variável de sessão não esteja definida, retorna uma string vazia (`''`), indicando que a aplicação está rodando diretamente na raiz do domínio (`/`).
+     *
+     * ---
+     * ## Exemplo de Aplicação
+     * - Se `$_SESSION['ROUTER_BASE_PATH']` for `'/sigec'`, uma requisição para `/sigec/suppliers` terá o base path removido, restando apenas `/suppliers` para o processamento do Router.
+     *
+     * @return string O caminho base da aplicação ou uma string vazia se estiver na raiz do domínio.
+     */
+    public static function getBasePath(): string {
+        return $_SESSION['ROUTER_BASE_PATH'] ?? '';
+    }
 }
