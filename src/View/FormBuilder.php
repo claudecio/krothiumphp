@@ -264,6 +264,7 @@ class FormBuilder {
      * @return string O caminho base da aplicação ou uma string vazia se estiver na raiz do domínio.
      */
     public static function getBasePath(): string {
-        return $_SESSION['ROUTER_BASE_PATH'] ?? '';
+        $basePath = trim($_SESSION['ROUTER_BASE_PATH'] ?? '');
+        return $basePath === '/' ? '' : rtrim($basePath, '/');
     }
 }
