@@ -406,8 +406,6 @@ class Router {
         if ($method === 'POST' && isset($_POST['_method'])) $method = strtoupper(string: $_POST['_method']);
         if (!in_array(needle: $method, haystack: self::$allowedHttpRequests)) self::jsonError(code: 405, msg: "HTTP method '{$method}' not is allowed.");
 
-        self::corsSetup(method: $method);
-
         if (!empty(self::$basePath) && str_starts_with(haystack: $uri, needle: trim(string: self::$basePath, characters: '/'))) {
             $uri = substr(string: $uri, offset: strlen(string: trim(string: self::$basePath, characters: '/')));
         }
