@@ -11,8 +11,7 @@ class Router {
     private static string $basePath = '';
     private static $currentGroupPrefix = '';
     private static $currentGroupMiddlewares = [];
-    private static $ROUTER_ALLOWED_ORIGINS = ['*'];
-    private static array $requiredConstants = ['ROUTER_MODE', 'APP_SYS_MODE'];
+    private static array $requiredConstants = ['ROUTER_MODE'];
     private static array $allowedHttpRequests = ['GET','POST','PUT','PATCH','DELETE','OPTIONS'];
 
     /**
@@ -35,31 +34,11 @@ class Router {
         self::checkRequiredConstants();
 
         // Verifica se tem diretório base definido
-        self::$basePath = defined(constant_name: 'ROUTER_BASE_PATH') 
-            ? '/' . trim(string: ROUTER_BASE_PATH, characters: '/')
-            : '';
-
+        self::$basePath = defined(constant_name: 'ROUTER_BASE_PATH') ? '/' . trim(string: ROUTER_BASE_PATH, characters: '/') : '';
         $_SESSION['ROUTER_BASE_PATH'] = self::$basePath;
 
         // Define os modos do roteador e do sistema
-        self::$ROUTER_MODE = strtoupper(string: ROUTER_MODE);
         self::$APP_SYS_MODE = strtoupper(string: APP_SYS_MODE);
-
-        // Define os domínios permitidos para CORS
-        if (self::$ROUTER_MODE === 'JSON' && defined(constant_name: 'ROUTER_ALLOWED_ORIGINS')) {
-            self::$ROUTER_ALLOWED_ORIGINS = ROUTER_ALLOWED_ORIGINS;
-        }
-    }
-
-    /**
-     * Retorna o modo de operação atual do roteador.
-     *
-     * Este método estático é utilizado para determinar o contexto de execução do roteador, geralmente indicando se ele está operando em modo de navegação web ('VIEW') ou em modo de API ('JSON').
-     *
-     * @return string O modo de roteamento como uma string.
-     */
-    public static function getMode(): string {
-        return self::$ROUTER_MODE;
     }
 
     /**
@@ -277,37 +256,6 @@ class Router {
     }
 
     /**
-     * Configura os cabeçalhos Cross-Origin Resource Sharing (CORS) para requisições de API.
-     *
-     * Este método privado verifica se a requisição é permitida de acordo com a política de CORS definida na aplicação.
-     * Ele permite ou nega o acesso de origens externas com base nas configurações e no modo de operação do sistema.
-     *
-     * @param string $method O método HTTP da requisição atual (e.g., 'OPTIONS', 'GET', 'POST').
-     * @return void Este método encerra a execução em caso de requisições OPTIONS ou de origem não permitida.
-     */
-    private static function corsSetup(string $method): void {
-        if (self::$ROUTER_MODE !== 'JSON') return;
-
-        $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-        $allowAll = in_array(needle: '*', haystack: self::$ROUTER_ALLOWED_ORIGINS);
-        $isAllowed = in_array(needle: $origin, haystack: self::$ROUTER_ALLOWED_ORIGINS);
-
-        if ($allowAll || $isAllowed || self::$APP_SYS_MODE === 'DEV') {
-            header(header: "Access-Control-Allow-Origin: $origin");
-        } else {
-            self::jsonError(code: 403, msg: "Origem '{$origin}' não permitida pelo CORS.");
-        }
-
-        header(header: 'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header(header: 'Access-Control-Allow-Headers: Content-Type, Authorization');
-
-        if ($method === 'OPTIONS') {
-            http_response_code(response_code: 204);
-            exit;
-        }
-    }
-
-    /**
      * Executa uma lista de funções de middleware em sequência para processar a requisição.
      *
      * Este método estático é o coração do sistema de middlewares, sendo responsável por iterar sobre todos os middlewares definidos para uma rota. Ele extrai a classe, o método e os argumentos de cada middleware, executa-o e verifica o resultado para determinar se o processamento da requisição deve continuar ou ser bloqueado.
@@ -407,7 +355,7 @@ class Router {
     /**
      * Lida com a situação em que nenhuma rota corresponde à URI solicitada.
      *
-     * Este método privado é o manipulador padrão para o erro 404 (Not Found). O comportamento de retorno depende do modo de operação do roteador (`self::$ROUTER_MODE`).
+     * Este método privado é o manipulador padrão para o erro 404 (Not Found).
      *
      * #### Fluxo de Operação:
      * 1.  **Modo VIEW (Navegação Web):**
@@ -419,14 +367,11 @@ class Router {
      * @return void Este método não retorna um valor; ele gerencia a saída HTTP (seja HTML ou JSON) e encerra a execução do script.
      */
     private static function pageNotFound(): void {
-        if (self::$ROUTER_MODE === 'VIEW') {
-            if (!defined(constant_name: 'ERROR_404_VIEW_PATH') || !file_exists(filename: ERROR_404_VIEW_PATH)) {
-                self::jsonError(code: 500, msg: "Erro na configuração da página 404.");
-            }
+        if (!defined(constant_name: 'ERROR_404_VIEW_PATH') || !file_exists(filename: ERROR_404_VIEW_PATH)) {
+            self::jsonError(code: 500, msg: "Error in 404 page configuration.");
+        } else {
             http_response_code(response_code: 404);
             require ERROR_404_VIEW_PATH;
-        } else {
-            self::jsonError(code: 404, msg: 'Página não encontrada.');
         }
     }
 
@@ -459,7 +404,7 @@ class Router {
         $uri = trim(string: parse_url(url: $_SERVER['REQUEST_URI'], component: PHP_URL_PATH), characters: '/');
 
         if ($method === 'POST' && isset($_POST['_method'])) $method = strtoupper(string: $_POST['_method']);
-        if (!in_array(needle: $method, haystack: self::$allowedHttpRequests)) self::jsonError(code: 405, msg: "Método HTTP '{$method}' não permitido.");
+        if (!in_array(needle: $method, haystack: self::$allowedHttpRequests)) self::jsonError(code: 405, msg: "HTTP method '{$method}' not is allowed.");
 
         self::corsSetup(method: $method);
 
@@ -472,21 +417,15 @@ class Router {
 
         foreach (self::$routes[$method] ?? [] as $route) {
             if (!self::matchRoute(method: $method, uri: $uri, route: $route)) continue;
-
             if (!empty($route['middlewares']) && !self::runMiddlewares(middlewares: $route['middlewares'])) return;
-
             $controller = new $route['controller']();
             $action = $route['action'];
             $params = self::prepareMethodParameters(method: $method, params: [$requestData]);
-
-            if (!method_exists(object_or_class: $controller, method: $action)) self::jsonError(code: 500, msg: "Método {$action} não encontrado.");
-
+            if (!method_exists(object_or_class: $controller, method: $action)) self::jsonError(code: 500, msg: "{$action} method not found.");
             http_response_code(response_code: 200);
-            if (self::$ROUTER_MODE === 'JSON') header(header: 'Content-Type: application/json; charset=utf-8');
             call_user_func_array(callback: [$controller, $action], args: $params);
             exit;
         }
-
         self::pageNotFound();
     }
 }

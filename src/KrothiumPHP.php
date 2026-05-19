@@ -39,7 +39,6 @@ class KrothiumPHP {
         
         self::setupTimezone();
         self::setupLogger();
-        self::setupErrorHandlers();
     }
 
     /**
@@ -118,52 +117,6 @@ class KrothiumPHP {
                 driver: $logConfig['driver'],
                 logDir: $logConfig['logDir']
             );
-        }
-    }
-
-    /**
-     * Configura handlers de erro para modo JSON
-     */
-    private static function setupErrorHandlers(): void {
-        // Só ativa se modo JSON
-        if (defined(constant_name: 'ROUTER_MODE') && Router::getMode() === 'JSON') {
-            // Captura warnings / notices
-            set_error_handler(callback: function ($errno, $errstr, $errfile, $errline) {
-                self::jsonErrorResponse(
-                    message: "Erro PHP: {$errstr}", 
-                    code: $errno, 
-                    extra: [
-                        'file' => $errfile,
-                        'line' => $errline
-                    ]
-                );
-            });
-            // Captura exceptions não tratadas
-            set_exception_handler(callback: function ($exception) {
-                self::jsonErrorResponse(
-                    message: $exception->getMessage(),
-                    code: $exception->getCode(),
-                    extra: [
-                        'file' => $exception->getFile(),
-                        'line' => $exception->getLine(),
-                        'trace' => $exception->getTrace()
-                    ]
-                );
-            });
-            // Captura fatal errors (shutdown)
-            register_shutdown_function(callback: function () {
-                $error = error_get_last();
-                if ($error !== null) {
-                    self::jsonErrorResponse(
-                        message: $error['message'],
-                        code: $error['type'],
-                        extra: [
-                            'file' => $error['file'],
-                            'line' => $error['line']
-                        ]
-                    );
-                }
-            });
         }
     }
 
