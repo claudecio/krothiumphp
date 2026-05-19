@@ -3,7 +3,7 @@
         'name' => 'claudecio/krothiumphp',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '3c86e27bd882b20c75587d1fed7bd01a5f141104',
+        'reference' => 'a46fe7c2b18af0017b4b8178d2860f84fcf7385e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'claudecio/krothiumphp' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '3c86e27bd882b20c75587d1fed7bd01a5f141104',
+            'reference' => 'a46fe7c2b18af0017b4b8178d2860f84fcf7385e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
